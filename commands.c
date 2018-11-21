@@ -94,7 +94,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 //**************************************************************************************
 void ExeExternal(char *args[MAX_ARG], char* cmdString)
 {
-	int pID;
+	int pID =0;
     	switch(pID = fork()) 
 	{
     		case -1: 
@@ -166,3 +166,4 @@ int BgCmd(char* lineSize, void* jobs)
 	return -1;
 }
 
+//test
