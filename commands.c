@@ -11,7 +11,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 {
 	char* cmd; 
 	char* args[MAX_ARG];
-	char pwd[MAX_LINE_SIZE];
+	char pwd[MAX_LINE_SIZE]; // Used in pwd command
 	char* delimiters = " \t\n";  
 	int i = 0, num_arg = 0;
 	bool illegal_cmd = FALSE; // illegal command
@@ -39,11 +39,12 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 	/*************************************************/
 	else if (!strcmp(cmd, "pwd")) 
 	{
-		
+		getcwd(pwd, sizeof(pwd));
+        printf("%s\n", pwd);
 	}
 	
 	/*************************************************/
-	else if (!strcmp(cmd, "mkdir"))
+	else if (!strcmp(cmd, "history")) //Replaced mkdir' doesn't seem to be necessary.
 	{
  		
 	}
@@ -94,7 +95,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 //**************************************************************************************
 void ExeExternal(char *args[MAX_ARG], char* cmdString)
 {
-	int pID;
+	int pID =0;
     	switch(pID = fork()) 
 	{
     		case -1: 
@@ -166,3 +167,4 @@ int BgCmd(char* lineSize, void* jobs)
 	return -1;
 }
 
+//test
