@@ -10,6 +10,7 @@
 #include <sys/wait.h>
 #define MAX_LINE_SIZE 80
 #define MAX_ARG 20
+#define MAX_CMD_LIST_SIZE 50 // for history command
 typedef enum { FALSE , TRUE } bool;
 int ExeComp(char* lineSize);
 int BgCmd(char* lineSize, void* jobs);

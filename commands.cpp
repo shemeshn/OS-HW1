@@ -7,8 +7,10 @@
 // Parameters: pointer to jobs, command string
 // Returns: 0 - success,1 - failure
 //**************************************************************************************
+
 int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 {
+    using namespace std;
 	char* cmd; 
 	char* args[MAX_ARG];
 	char pwd[MAX_LINE_SIZE]; // Used in pwd command
@@ -23,9 +25,14 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 	{
 		args[i] = strtok(NULL, delimiters); 
 		if (args[i] != NULL) 
-			num_arg++; 
- 
+			num_arg++;
 	}
+	//saving new commands to command list for history command
+	if (cmd_list.size()>=MAX_CMD_LIST_SIZE)
+	    cmd_list.pop_front();
+	cmd_list.push_back(args);
+
+
 /*************************************************/
 // Built in Commands PLEASE NOTE NOT ALL REQUIRED
 // ARE IN THIS CHAIN OF IF COMMANDS. PLEASE ADD
@@ -44,9 +51,9 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 	}
 	
 	/*************************************************/
-	else if (!strcmp(cmd, "history")) //Replaced mkdir' doesn't seem to be necessary.
+	else if (!strcmp(cmd, "history")) //Replaced mkdir, didn't seem to be necessary.
 	{
- 		
+
 	}
 	/*************************************************/
 	
@@ -96,31 +103,31 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 void ExeExternal(char *args[MAX_ARG], char* cmdString)
 {
 	int pID =0;
-    	switch(pID = fork()) 
-	{
-    		case -1: 
-					// Add your code here (error)
-					
-					/* 
-					your code
-					*/
-        	case 0 :
-                	// Child Process
-               		setpgrp();
-					
-			        // Add your code here (execute an external command)
-					
-					/* 
-					your code
-					*/
-			
-			default:
-                	// Add your code here
-					
-					/* 
-					your code
-					*/
-	}
+	//switch(pID = fork())
+	//{
+    //		case -1:
+	//				// Add your code here (error)
+	//
+	//				/*
+	//				your code
+	//				*/
+    //    	case 0 :
+    //            	// Child Process
+    //           		setpgrp();
+	//
+	//		        // Add your code here (execute an external command)
+	//
+	//				/*
+	//				your code
+	//				*/
+	//
+	//		default:
+    //            	// Add your code here
+	//
+	//				/*
+	//				your code
+	//				*/
+	//}
 }
 //**************************************************************************************
 // function name: ExeComp
