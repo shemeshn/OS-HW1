@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 
 	/************************************/
 	// Init globals 
-	list <string> cmd_list; //Used in history command
+	list<string> cmd_list; //Used in history command
     
 	
 	L_Fg_Cmd =(char*)malloc(sizeof(char)*(MAX_LINE_SIZE+1));
@@ -55,12 +55,16 @@ int main(int argc, char *argv[])
 		strcpy(cmdArr, lineSize);    	
 		cmdArr[strlen(lineSize)-1]='\0';
 		cmdString = cmdArr;
+        //saving new commands to command list for history command
+        if (cmd_list.size()>=MAX_CMD_LIST_SIZE)
+            cmd_list.pop_front();
+        cmd_list.push_back(cmdString);
 					// perform a complicated Command
 		if(!ExeComp(lineSize)) continue;
 					// background command	
 	 	if(!BgCmd(lineSize, jobs)) continue; 
 					// built in commands
-		ExeCmd(jobs, lineSize, cmdArr);
+		ExeCmd(jobs, lineSize, cmdArr, cmd_list);
 		
 		/* initialize for next line read*/
 		lineSize[0]='\0';

@@ -7,8 +7,8 @@
 // Parameters: pointer to jobs, command string
 // Returns: 0 - success,1 - failure
 //**************************************************************************************
-
-int ExeCmd(void* jobs, char* lineSize, char* cmdString)
+using namespace std;
+int ExeCmd(void* jobs, char* lineSize, char* cmdString, list<string> cmd_list)
 {
     using namespace std;
 	char* cmd; 
@@ -16,7 +16,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 	char pwd[MAX_LINE_SIZE]; // Used in pwd command
 	char* delimiters = " \t\n";  
 	int i = 0, num_arg = 0;
-	bool illegal_cmd = FALSE; // illegal command
+	bool illegal_cmd = false; // illegal command
     	cmd = strtok(lineSize, delimiters);
 	if (cmd == NULL)
 		return 0; 
@@ -27,10 +27,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 		if (args[i] != NULL) 
 			num_arg++;
 	}
-	//saving new commands to command list for history command
-	if (cmd_list.size()>=MAX_CMD_LIST_SIZE)
-	    cmd_list.pop_front();
-	cmd_list.push_back(args);
+
 
 
 /*************************************************/
@@ -53,7 +50,9 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 	/*************************************************/
 	else if (!strcmp(cmd, "history")) //Replaced mkdir, didn't seem to be necessary.
 	{
-
+        for (list<string>::iterator it = cmd_list.begin(); it != cmd_list.end() ; ++it) {
+            cout<<*it<<endl;
+        }
 	}
 	/*************************************************/
 	
@@ -87,7 +86,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
  		ExeExternal(args, cmdString);
 	 	return 0;
 	}
-	if (illegal_cmd == TRUE)
+	if (illegal_cmd == true)
 	{
 		printf("smash error: > \"%s\"\n", cmdString);
 		return 1;
