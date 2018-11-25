@@ -17,6 +17,8 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString, list<string> cmd_list)
 	char* delimiters = " \t\n";  
 	int i = 0, num_arg = 0;
 	bool illegal_cmd = false; // illegal command
+	bool arg_num_err = false; // argument error
+	bool sys_err = false; //system error
     	cmd = strtok(lineSize, delimiters);
 	if (cmd == NULL)
 		return 0; 
@@ -43,15 +45,32 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString, list<string> cmd_list)
 	/*************************************************/
 	else if (!strcmp(cmd, "pwd")) 
 	{
-		getcwd(pwd, sizeof(pwd));
-        printf("%s\n", pwd);
+	    if (num_arg == 0)
+	    {
+            getcwd(pwd, sizeof(pwd));
+            printf("%s\n", pwd);
+        }
+        else //Error in case of too many arguments
+        {
+            illegal_cmd = true;
+            arg_num_err = true;
+        }
 	}
 	
 	/*************************************************/
-	else if (!strcmp(cmd, "history")) //Replaced mkdir, didn't seem to be necessary.
+	else if (!strcmp(cmd, "history"))
 	{
-        for (list<string>::iterator it = cmd_list.begin(); it != cmd_list.end() ; ++it) {
-            cout<<*it<<endl;
+        if (num_arg == 0)
+        {
+            //printing history list
+            for (list<string>::iterator it = cmd_list.begin(); it != cmd_list.end() ; ++it) {
+                cout<<*it<<endl;
+            }
+        }
+        else //Error in case of too many arguments
+        {
+            illegal_cmd = true;
+            arg_num_err = true;
         }
 	}
 	/*************************************************/
@@ -81,14 +100,41 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString, list<string> cmd_list)
    		
 	} 
 	/*************************************************/
+    else if (!strcmp(cmd, "mv"))
+    {
+        struct stat buf;
+        //checking for argument error
+        if (num_arg!=2) {
+            illegal_cmd = true;
+            arg_num_err = true;
+        }
+        //checking if files exist
+        else if((stat(args[1], &buf)==-1)||(stat(args[2], &buf)==-1)) {
+            illegal_cmd = true;
+            sys_err = true;
+        }
+        //renaming the file
+        else {
+            if(rename(args[1], args[2])==-1) {
+                illegal_cmd = true;// need to check if rename failure is considered an illegal command
+                sys_err = true;
+            }
+        }
+    }
+        /*************************************************/
 	else // external command
 	{
  		ExeExternal(args, cmdString);
 	 	return 0;
 	}
-	if (illegal_cmd == true)
+	if (illegal_cmd)
 	{
 		printf("smash error: > \"%s\"\n", cmdString);
+		//In case of too many arguments
+        if (arg_num_err)
+            cout << ARG_ERR <<endl;
+        else if (sys_err)
+            perror("An error has occurred");
 		return 1;
 	}
     return 0;

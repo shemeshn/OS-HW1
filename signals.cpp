@@ -1,5 +1,5 @@
 // signals.c
-// contains signal handler funtions
+// contains signal handler functions
 // contains the function/s that set the signal handlers
 
 /*******************************************/
