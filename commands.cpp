@@ -50,7 +50,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString, list<string> cmd_list)
             getcwd(pwd, sizeof(pwd));
             printf("%s\n", pwd);
         }
-        else //Error in case of too many arguments
+        else //in case of wrong number of arguments
         {
             illegal_cmd = true;
             arg_num_err = true;
@@ -67,7 +67,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString, list<string> cmd_list)
                 cout<<*it<<endl;
             }
         }
-        else //Error in case of too many arguments
+        else //in case of wrong number of arguments
         {
             illegal_cmd = true;
             arg_num_err = true;
@@ -108,15 +108,11 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString, list<string> cmd_list)
             illegal_cmd = true;
             arg_num_err = true;
         }
-        //checking if files exist
-        else if((stat(args[1], &buf)==-1)||(stat(args[2], &buf)==-1)) {
-            illegal_cmd = true;
-            sys_err = true;
-        }
         //renaming the file
         else {
+            //checking if renaming was successful
             if(rename(args[1], args[2])==-1) {
-                illegal_cmd = true;// need to check if rename failure is considered an illegal command
+                illegal_cmd = true;
                 sys_err = true;
             }
         }
@@ -129,12 +125,14 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString, list<string> cmd_list)
 	}
 	if (illegal_cmd)
 	{
-		printf("smash error: > \"%s\"\n", cmdString);
-		//In case of too many arguments
+		//In case of wrong number of arguments
         if (arg_num_err)
-            cout << ARG_ERR <<endl;
+            printf("smash error: > \"%s\"\n", ARG_ERR);
+        //In case of system error
         else if (sys_err)
             perror("An error has occurred");
+        else
+            printf("smash error: > \"%s\"\n", cmdString);
 		return 1;
 	}
     return 0;
@@ -148,31 +146,24 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString, list<string> cmd_list)
 void ExeExternal(char *args[MAX_ARG], char* cmdString)
 {
 	int pID =0;
-	//switch(pID = fork())
-	//{
-    //		case -1:
-	//				// Add your code here (error)
-	//
-	//				/*
-	//				your code
-	//				*/
-    //    	case 0 :
-    //            	// Child Process
-    //           		setpgrp();
-	//
-	//		        // Add your code here (execute an external command)
-	//
-	//				/*
-	//				your code
-	//				*/
-	//
-	//		default:
-    //            	// Add your code here
-	//
-	//				/*
-	//				your code
-	//				*/
-	//}
+	int tmp;
+	switch(pID = fork())
+	{
+	    case -1:
+			// Add your code here (error)
+			perror("failure");
+		case 0 :
+            // Child Process
+            setpgrp();
+
+			// Add your code here (execute an external command)
+			execv(cmdString);
+			perror("External command execution failed");
+
+		default:
+            // Add your code here
+			wait(&tmp);
+	}
 }
 //**************************************************************************************
 // function name: ExeComp

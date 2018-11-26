@@ -14,11 +14,13 @@
 #include<iostream>
 //for checking file status
 #include <sys/stat.h>
+//for exec command
+#include <unistd.h>
 
 #define MAX_LINE_SIZE 80
 #define MAX_ARG 20
 #define MAX_CMD_LIST_SIZE 50 // for history command
-#define ARG_ERR "Too many arguments"
+#define ARG_ERR "Wrong number of arguments"
 int ExeComp(char* lineSize);
 int BgCmd(char* lineSize, void* jobs);
 int ExeCmd(void* jobs, char* lineSize, char* cmdString, std::list<std::string> cmd_list);
