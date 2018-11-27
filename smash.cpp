@@ -13,19 +13,21 @@ main file. This file contains the main function of smash
 #define MAX_LINE_SIZE 80
 #define MAXARGS 20
 
+using namespace std;
 char* L_Fg_Cmd;
 void* jobs = NULL; //This represents the list of jobs. Please change to a preferred type (e.g array of char*)
-char lineSize[MAX_LINE_SIZE]; 
+char lineSize[MAX_LINE_SIZE];
+
 //**************************************************************************************
 // function name: main
 // Description: main function of smash. get command from user and calls command functions
 //**************************************************************************************
 int main(int argc, char *argv[])
 {
-    char cmdString[MAX_LINE_SIZE]; 	   
-
+    char cmdArr[MAX_LINE_SIZE]; 	   
+    string cmdString;
 	
-	//signal declaretions
+	//signal declarations
 	//NOTE: the signal handlers and the function/s that sets the handler should be found in siganls.c
 	 /* add your code here */
 	
@@ -38,8 +40,8 @@ int main(int argc, char *argv[])
 
 	/************************************/
 	// Init globals 
-
-
+	list<string> cmd_list; //Used in history command
+    
 	
 	L_Fg_Cmd =(char*)malloc(sizeof(char)*(MAX_LINE_SIZE+1));
 	if (L_Fg_Cmd == NULL) 
@@ -50,18 +52,23 @@ int main(int argc, char *argv[])
     	{
 	 	printf("smash > ");
 		fgets(lineSize, MAX_LINE_SIZE, stdin);
-		strcpy(cmdString, lineSize);    	
-		cmdString[strlen(lineSize)-1]='\0';
+		strcpy(cmdArr, lineSize);    	
+		cmdArr[strlen(lineSize)-1]='\0';
+		cmdString = cmdArr;
+        //saving new commands to command list for history command
+        if (cmd_list.size()>=MAX_CMD_LIST_SIZE)
+            cmd_list.pop_front();
+        cmd_list.push_back(cmdString);
 					// perform a complicated Command
-		if(!ExeComp(lineSize)) continue; 
+		if(!ExeComp(lineSize)) continue;
 					// background command	
 	 	if(!BgCmd(lineSize, jobs)) continue; 
 					// built in commands
-		ExeCmd(jobs, lineSize, cmdString);
+		ExeCmd(jobs, lineSize, cmdArr, cmd_list);
 		
 		/* initialize for next line read*/
 		lineSize[0]='\0';
-		cmdString[0]='\0';
+		cmdArr[0]='\0';
 	}
     return 0;
 }

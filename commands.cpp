@@ -7,14 +7,18 @@
 // Parameters: pointer to jobs, command string
 // Returns: 0 - success,1 - failure
 //**************************************************************************************
-int ExeCmd(void* jobs, char* lineSize, char* cmdString)
+using namespace std;
+int ExeCmd(void* jobs, char* lineSize, char* cmdString, list<string> cmd_list)
 {
+    using namespace std;
 	char* cmd; 
 	char* args[MAX_ARG];
 	char pwd[MAX_LINE_SIZE]; // Used in pwd command
 	char* delimiters = " \t\n";  
 	int i = 0, num_arg = 0;
-	bool illegal_cmd = FALSE; // illegal command
+	bool illegal_cmd = false; // illegal command
+	bool arg_num_err = false; // argument error
+	bool sys_err = false; //system error
     	cmd = strtok(lineSize, delimiters);
 	if (cmd == NULL)
 		return 0; 
@@ -23,9 +27,11 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 	{
 		args[i] = strtok(NULL, delimiters); 
 		if (args[i] != NULL) 
-			num_arg++; 
- 
+			num_arg++;
 	}
+
+
+
 /*************************************************/
 // Built in Commands PLEASE NOTE NOT ALL REQUIRED
 // ARE IN THIS CHAIN OF IF COMMANDS. PLEASE ADD
@@ -39,14 +45,33 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 	/*************************************************/
 	else if (!strcmp(cmd, "pwd")) 
 	{
-		getcwd(pwd, sizeof(pwd));
-        printf("%s\n", pwd);
+	    if (num_arg == 0)
+	    {
+            getcwd(pwd, sizeof(pwd));
+            printf("%s\n", pwd);
+        }
+        else //in case of wrong number of arguments
+        {
+            illegal_cmd = true;
+            arg_num_err = true;
+        }
 	}
 	
 	/*************************************************/
-	else if (!strcmp(cmd, "history")) //Replaced mkdir' doesn't seem to be necessary.
+	else if (!strcmp(cmd, "history"))
 	{
- 		
+        if (num_arg == 0)
+        {
+            //printing history list
+            for (list<string>::iterator it = cmd_list.begin(); it != cmd_list.end() ; ++it) {
+                cout<<*it<<endl;
+            }
+        }
+        else //in case of wrong number of arguments
+        {
+            illegal_cmd = true;
+            arg_num_err = true;
+        }
 	}
 	/*************************************************/
 	
@@ -75,14 +100,39 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
    		
 	} 
 	/*************************************************/
+    else if (!strcmp(cmd, "mv"))
+    {
+        struct stat buf;
+        //checking for argument error
+        if (num_arg!=2) {
+            illegal_cmd = true;
+            arg_num_err = true;
+        }
+        //renaming the file
+        else {
+            //checking if renaming was successful
+            if(rename(args[1], args[2])==-1) {
+                illegal_cmd = true;
+                sys_err = true;
+            }
+        }
+    }
+        /*************************************************/
 	else // external command
 	{
  		ExeExternal(args, cmdString);
 	 	return 0;
 	}
-	if (illegal_cmd == TRUE)
+	if (illegal_cmd)
 	{
-		printf("smash error: > \"%s\"\n", cmdString);
+		//In case of wrong number of arguments
+        if (arg_num_err)
+            printf("smash error: > \"%s\"\n", ARG_ERR);
+        //In case of system error
+        else if (sys_err)
+            perror("An error has occurred");
+        else
+            printf("smash error: > \"%s\"\n", cmdString);
 		return 1;
 	}
     return 0;
@@ -96,30 +146,23 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 void ExeExternal(char *args[MAX_ARG], char* cmdString)
 {
 	int pID =0;
-    	switch(pID = fork()) 
+	int tmp;
+	switch(pID = fork())
 	{
-    		case -1: 
-					// Add your code here (error)
-					
-					/* 
-					your code
-					*/
-        	case 0 :
-                	// Child Process
-               		setpgrp();
-					
-			        // Add your code here (execute an external command)
-					
-					/* 
-					your code
-					*/
-			
-			default:
-                	// Add your code here
-					
-					/* 
-					your code
-					*/
+	    case -1:
+			// Add your code here (error)
+			perror("failure");
+		case 0 :
+            // Child Process
+            setpgrp();
+
+			// Add your code here (execute an external command)
+			execv(cmdString);
+			perror("External command execution failed");
+
+		default:
+            // Add your code here
+			wait(&tmp);
 	}
 }
 //**************************************************************************************
