@@ -17,13 +17,24 @@
 //for exec command
 #include <unistd.h>
 
+#include "Job.h"
+
 #define MAX_LINE_SIZE 80
 #define MAX_ARG 20
 #define MAX_CMD_LIST_SIZE 50 // for history command
 #define ARG_ERR "Wrong number of arguments"
+
+using std::list;
+using std::string;
+
+typedef struct smash_t {
+	list<string> cmd_list;
+	list<Job> job_list;
+} Smash;
+
 int ExeComp(char* lineSize);
 int BgCmd(char* lineSize, void* jobs);
-int ExeCmd(void* jobs, char* lineSize, char* cmdString, std::list<std::string> cmd_list);
+int ExeCmd(void* jobs, char* lineSize, char* cmdString, Smash smash);
 void ExeExternal(char *args[MAX_ARG], char* cmdString);
 #endif
 

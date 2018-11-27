@@ -14,7 +14,7 @@ static void KillAndQuit(){
 	exit(1);
 }
 
-int ExeCmd(void* jobs, char* lineSize, char* cmdString, list<string> cmd_list)
+int ExeCmd(void* jobs, char* lineSize, char* cmdString, Smash smash)
 {
     using namespace std;
 	char* cmd; 
@@ -69,7 +69,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString, list<string> cmd_list)
         if (num_arg == 0)
         {
             //printing history list
-            for (list<string>::iterator it = cmd_list.begin(); it != cmd_list.end() ; ++it) {
+            for (list<string>::iterator it = smash.cmd_list.begin(); it != smash.cmd_list.end() ; ++it) {
                 cout<<*it<<endl;
             }
         }
@@ -88,7 +88,14 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString, list<string> cmd_list)
 	/*************************************************/
 	else if (!strcmp(cmd, "showpid")) 
 	{
-		
+ 		switch (num_arg){
+			case 0:
+				printf("smash pid is %d\n", getpid());
+				break;
+
+			default:
+				illegal_cmd = true;
+ 		}
 	}
 	/*************************************************/
 	else if (!strcmp(cmd, "fg")) 
