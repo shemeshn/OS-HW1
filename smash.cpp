@@ -18,6 +18,9 @@ char* L_Fg_Cmd;
 void* jobs = NULL; //This represents the list of jobs. Please change to a preferred type (e.g array of char*)
 char lineSize[MAX_LINE_SIZE];
 
+// Global variables
+Smash smash;
+
 //**************************************************************************************
 // function name: main
 // Description: main function of smash. get command from user and calls command functions
@@ -40,7 +43,6 @@ int main(int argc, char *argv[])
 
 	/************************************/
 	// Init globals 
-	list<string> cmd_list; //Used in history command
     
 	
 	L_Fg_Cmd =(char*)malloc(sizeof(char)*(MAX_LINE_SIZE+1));
@@ -56,15 +58,15 @@ int main(int argc, char *argv[])
 		cmdArr[strlen(lineSize)-1]='\0';
 		cmdString = cmdArr;
         //saving new commands to command list for history command
-        if (cmd_list.size()>=MAX_CMD_LIST_SIZE)
-            cmd_list.pop_front();
-        cmd_list.push_back(cmdString);
+        if (smash.cmd_list.size()>=MAX_CMD_LIST_SIZE)
+        	smash.cmd_list.pop_front();
+        smash.cmd_list.push_back(cmdString);
 					// perform a complicated Command
 		if(!ExeComp(lineSize)) continue;
 					// background command	
 	 	if(!BgCmd(lineSize, jobs)) continue; 
 					// built in commands
-		ExeCmd(jobs, lineSize, cmdArr, cmd_list);
+		ExeCmd(jobs, lineSize, cmdArr, smash);
 		
 		/* initialize for next line read*/
 		lineSize[0]='\0';
