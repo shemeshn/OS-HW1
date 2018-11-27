@@ -8,6 +8,12 @@
 // Returns: 0 - success,1 - failure
 //**************************************************************************************
 using namespace std;
+
+static void KillAndQuit(){
+	// TODO: complete this function
+	exit(1);
+}
+
 int ExeCmd(void* jobs, char* lineSize, char* cmdString, list<string> cmd_list)
 {
     using namespace std;
@@ -97,8 +103,24 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString, list<string> cmd_list)
 	/*************************************************/
 	else if (!strcmp(cmd, "quit"))
 	{
-   		
+   		switch(num_arg){
+   			case 0:
+   				exit(1);
+   				break;
+
+   			case 1:
+   				if(!strcmp(args[1], "kill")){
+   					KillAndQuit();
+   				} else {
+   					illegal_cmd = true;
+   				}
+   				break;
+
+   			default:
+   				illegal_cmd = true;
+   		}
 	} 
+
 	/*************************************************/
     else if (!strcmp(cmd, "mv"))
     {
@@ -157,7 +179,7 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
             setpgrp();
 
 			// Add your code here (execute an external command)
-			execv(cmdString);
+			// execv(cmdString);
 			perror("External command execution failed");
 
 		default:
