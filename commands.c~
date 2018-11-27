@@ -120,7 +120,6 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
 					/* 
 					your code
 					*/
-				break;
 	}
 }
 //**************************************************************************************
