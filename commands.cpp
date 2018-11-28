@@ -9,6 +9,39 @@
 //**************************************************************************************
 using namespace std;
 
+typedef enum {SUCCESS, FAILURE} Result;
+
+char prevWD[MAX_LINE_SIZE];
+
+// Change working directory to given path
+Result ChangeDirectory(char* path){
+	char pwd[MAX_LINE_SIZE], auxWD[MAX_LINE_SIZE];
+	getcwd(pwd, MAX_LINE_SIZE);
+	strcpy(auxWD, prevWD);
+
+	if(!strcmp(path, "-")){
+		strcpy(pwd, auxWD);
+		getcwd(prevWD, MAX_LINE_SIZE);
+		chdir(pwd);
+		return SUCCESS;
+	}
+
+	int cdResult = chdir(path);
+
+	if(0 != cdResult){  // chdir command failed
+		memset(prevWD, 0x0, MAX_LINE_SIZE);
+		strcpy(prevWD, auxWD);
+		return FAILURE;
+	}
+	else {	// chdir command succeeded
+		strcpy(prevWD, pwd);
+		getcwd(pwd, MAX_LINE_SIZE);
+		return SUCCESS;
+	}
+
+	return SUCCESS;
+}
+
 static void KillAndQuit(){
 	// TODO: complete this function
 	exit(1);
@@ -45,7 +78,20 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString, Smash smash)
 /*************************************************/
 	if (!strcmp(cmd, "cd") ) 
 	{
-		
+		switch (num_arg) {
+			case 1:
+				if (SUCCESS != ChangeDirectory(args[1])){
+					printf("smash error: > \"%s\" - path not found\n", args[1]);
+				}
+				if(!strcmp(args[1], "-")){
+					char* cwd = getcwd(pwd, MAX_LINE_SIZE);
+					printf("%s\n", cwd);
+				}
+				break;
+
+			default:
+				illegal_cmd = true;
+		}
 	} 
 	
 	/*************************************************/
