@@ -40,3 +40,13 @@ void Job::Stop(){
 void Job::Resume(){
 	isStopped = false;
 }
+
+//**************************************************************************************
+// function name: FindJob
+// Description: Finds a job object with serial number num
+// Parameters: job number
+// Returns: if successful- a pointer to Job object, else NULL
+//**************************************************************************************
+Job Job::FindJob(int job_num){
+
+}

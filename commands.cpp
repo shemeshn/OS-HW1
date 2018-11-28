@@ -1,6 +1,7 @@
 //		commands.c
 //********************************************
 #include "commands.h"
+#include "signals.h"
 //********************************************
 // function name: ExeCmd
 // Description: interperts and executes built-in commands
@@ -8,8 +9,6 @@
 // Returns: 0 - success,1 - failure
 //**************************************************************************************
 using namespace std;
-
-typedef enum {SUCCESS, FAILURE} Result;
 
 char prevWD[MAX_LINE_SIZE];
 
@@ -56,9 +55,10 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString, Smash smash)
 	char* delimiters = " \t\n";  
 	int i = 0, num_arg = 0;
 	bool illegal_cmd = false; // illegal command
-	bool arg_num_err = false; // argument error
+	bool arg_err = false; // argument error
 	bool sys_err = false; //system error
-    	cmd = strtok(lineSize, delimiters);
+
+	cmd = strtok(lineSize, delimiters);
 	if (cmd == NULL)
 		return 0; 
    	args[0] = cmd;
@@ -105,7 +105,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString, Smash smash)
         else //in case of wrong number of arguments
         {
             illegal_cmd = true;
-            arg_num_err = true;
+            arg_err = true;
         }
 	}
 	
@@ -122,7 +122,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString, Smash smash)
         else //in case of wrong number of arguments
         {
             illegal_cmd = true;
-            arg_num_err = true;
+            arg_err = true;
         }
 	}
 	/*************************************************/
@@ -144,6 +144,36 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString, Smash smash)
  		}
 	}
 	/*************************************************/
+    else if (!strcmp(cmd, "kill"))
+    {
+        int signum;//temporary
+        int pid;//temporary
+        int job_num;//temporary
+        string sig_name = args[1];
+
+        //checking if argument number is valid and signum starts with '-'
+        if((num_arg!=2)||(sig_name.compare(0,1,"-")!=0))
+        {
+            illegal_cmd = true;
+            arg_err = true;
+        }
+        else
+        {
+            //removing the '-'
+            sig_name.erase(sig_name.begin());
+            try {
+                signum = atoi(sig_name.c_str());
+            }
+            catch(...){
+                illegal_cmd = true;
+                arg_err = true;
+            }
+
+            if(signal_handler(signum, pid)==FAILURE)
+                cout<<"smash error:> kill "<<job_num<<"- cannot send signal"<<endl;
+        }
+    }
+    /*************************************************/
 	else if (!strcmp(cmd, "fg")) 
 	{
 		
@@ -181,7 +211,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString, Smash smash)
         //checking for argument error
         if (num_arg!=2) {
             illegal_cmd = true;
-            arg_num_err = true;
+            arg_err = true;
         }
         //renaming the file
         else {
@@ -202,7 +232,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString, Smash smash)
 	if (illegal_cmd)
 	{
 		//In case of wrong number of arguments
-        if (arg_num_err)
+        if (arg_err)
             printf("smash error: > \"%s\"\n", ARG_ERR);
         //In case of system error
         else if (sys_err)
@@ -227,17 +257,17 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
 	{
 	    case -1:
 			// Add your code here (error)
-			perror("smash error: > \"%s\"\n", "fork failure");
+			perror("smash error: > \"fork failure\"\n");
 		case 0 :
             // Child Process
             setpgrp();
 
 			// Add your code here (execute an external command)
 			execv(cmdString, args);
+			//if execv returns, there's an error.
 			perror("smash error: >");
 
 		default:
-            // Add your code here
 			wait(&tmp);
 	}
 }
