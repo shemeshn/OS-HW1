@@ -144,6 +144,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString, Smash smash)
                 illegal_cmd = true;
                 sys_err = true;
             }
+            cout<<args[1]<<" has been renamed to "<<args[2]<<endl;
         }
     }
         /*************************************************/
@@ -159,7 +160,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString, Smash smash)
             printf("smash error: > \"%s\"\n", ARG_ERR);
         //In case of system error
         else if (sys_err)
-            perror("An error has occurred");
+            perror("smash error: >");
         else
             printf("smash error: > \"%s\"\n", cmdString);
 		return 1;
@@ -180,14 +181,14 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
 	{
 	    case -1:
 			// Add your code here (error)
-			perror("failure");
+			perror("smash error: > \"%s\"\n", "fork failure");
 		case 0 :
             // Child Process
             setpgrp();
 
 			// Add your code here (execute an external command)
-			// execv(cmdString);
-			perror("External command execution failed");
+			execv(cmdString, args);
+			perror("smash error: >");
 
 		default:
             // Add your code here
