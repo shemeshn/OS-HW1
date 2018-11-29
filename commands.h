@@ -33,8 +33,8 @@ typedef struct smash_t {
 } Smash;
 
 int ExeComp(char* lineSize);
-int BgCmd(char* lineSize, void* jobs);
-int ExeCmd(void* jobs, char* lineSize, char* cmdString, Smash smash);
+int BgCmd(Smash smash, char* lineSize, void* jobs);
+int ExeCmd(Smash smash, void* jobs, char* lineSize, char* cmdString);
 void ExeExternal(char *args[MAX_ARG], char* cmdString);
 #endif
 
