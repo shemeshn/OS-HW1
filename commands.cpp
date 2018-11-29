@@ -13,7 +13,30 @@ typedef enum {SUCCESS, FAILURE} Result;
 
 char prevWD[MAX_LINE_SIZE];
 
-// Change working directory to given path
+//*****************************************************************************
+//*************** Smash functions
+//*****************************************************************************
+
+void InsertJob(Smash smash, string name, int pid){
+	Job newJob(name, pid);
+	smash.job_list.push_back(newJob);
+	return;
+}
+
+void PrintJobs(Smash smash){
+
+	int counter = 1;
+    for (list<Job>::iterator it = smash.job_list.begin(); it != smash.job_list.end() ; ++it) {
+        cout << "[" << counter << "] " << it->GetName() << " ";
+        cout << it->GetPid() << " " << it->GetRunningTime() << " secs";
+        if(it->IsJobStopped()){
+        	cout << " (Stopped)";
+        }
+        cout << endl;
+        counter++;
+    }
+}
+
 Result ChangeDirectory(char* path){
 	char pwd[MAX_LINE_SIZE], auxWD[MAX_LINE_SIZE];
 	getcwd(pwd, MAX_LINE_SIZE);
@@ -47,7 +70,7 @@ static void KillAndQuit(){
 	exit(1);
 }
 
-int ExeCmd(void* jobs, char* lineSize, char* cmdString, Smash smash)
+int ExeCmd(Smash smash, void* jobs, char* lineSize, char* cmdString)
 {
     using namespace std;
 	char* cmd; 
@@ -129,7 +152,14 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString, Smash smash)
 	
 	else if (!strcmp(cmd, "jobs")) 
 	{
- 		
+		switch(num_arg){
+			case 0:
+				PrintJobs(smash);
+				break;
+
+			default:
+				illegal_cmd = true;
+		}
 	}
 	/*************************************************/
 	else if (!strcmp(cmd, "showpid")) 
@@ -227,18 +257,21 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
 	{
 	    case -1:
 			// Add your code here (error)
-			perror("smash error: > \"%s\"\n", "fork failure");
-		case 0 :
-            // Child Process
+
+			perror("Could not create a new process");
+		case 0 :	// Child Process
             setpgrp();
+            execvp(args[0], args);
+			perror("External command execution failed");
+			exit(1);
+			break;
 
-			// Add your code here (execute an external command)
-			execv(cmdString, args);
-			perror("smash error: >");
-
-		default:
-            // Add your code here
-			wait(&tmp);
+		default:	// Father process: wait for son process to die
+            int status;
+            if(-1 == waitpid(pID, &status, WUNTRACED)){
+            	perror("waitpid() failed");
+            }
+            break;
 	}
 }
 //**************************************************************************************
@@ -267,7 +300,7 @@ int ExeComp(char* lineSize)
 // Parameters: command string, pointer to jobs
 // Returns: 0- BG command -1- if not
 //**************************************************************************************
-int BgCmd(char* lineSize, void* jobs)
+int BgCmd(Smash smash, char* lineSize, void* jobs)
 {
 
 	char* Command;
@@ -277,11 +310,11 @@ int BgCmd(char* lineSize, void* jobs)
 	{
 		lineSize[strlen(lineSize)-2] = '\0';
 		// Add your code here (execute a in the background)
-					
-		/* 
-		your code
-		*/
-		
+
+		/*
+		  your code
+		 */
+
 	}
 	return -1;
 }
