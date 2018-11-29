@@ -2,12 +2,7 @@
 //********************************************
 #include "commands.h"
 #include "signals.h"
-//********************************************
-// function name: ExeCmd
-// Description: interperts and executes built-in commands
-// Parameters: pointer to jobs, command string
-// Returns: 0 - success,1 - failure
-//**************************************************************************************
+
 using namespace std;
 
 char prevWD[MAX_LINE_SIZE];
@@ -45,7 +40,28 @@ static void KillAndQuit(){
 	// TODO: complete this function
 	exit(1);
 }
+//**************************************************************************************
+// function name: FindJob
+// Description: Finds a job object with serial number num
+// Parameters: job number, job list
+// Returns: if successful- a pointer to Job object, else NULL
+//**************************************************************************************
+//not working
+int FindJobPID(list<Job> job_list, int job_num){
+    for(list<Job>::iterator it=job_list.begin(); it!=job_list.end; ++it){
+        //if((it)->GetJobNum()==job_num){
+        //    return (it)->GetPid();
+        //}
+    }
+    return -1;
+}
 
+//**************************************************************************************
+// function name: ExeCmd
+// Description: interperts and executes built-in commands
+// Parameters: pointer to jobs, command string
+// Returns: 0 - success,1 - failure
+//**************************************************************************************
 int ExeCmd(void* jobs, char* lineSize, char* cmdString, Smash smash)
 {
     using namespace std;
@@ -146,9 +162,9 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString, Smash smash)
 	/*************************************************/
     else if (!strcmp(cmd, "kill"))
     {
-        int signum;//temporary
-        int pid;//temporary
-        int job_num;//temporary
+        int signum;
+        int pid;
+        int job_num;
         string sig_name = args[1];
 
         //checking if argument number is valid and signum starts with '-'
@@ -161,15 +177,14 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString, Smash smash)
         {
             //removing the '-'
             sig_name.erase(sig_name.begin());
-            try {
-                signum = atoi(sig_name.c_str());
-            }
-            catch(...){
+            //converting string to integer
+            signum = atoi(sig_name.c_str());
+            //conversion failed
+            if(signum==0) {
                 illegal_cmd = true;
                 arg_err = true;
             }
-
-            if(signal_handler(signum, pid)==FAILURE)
+            else if(signal_handler(signum, pid)==FAILURE)
                 cout<<"smash error:> kill "<<job_num<<"- cannot send signal"<<endl;
         }
     }
