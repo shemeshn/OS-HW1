@@ -24,6 +24,7 @@ public:
 	void SetName(string newName);
 	int GetPid();
 	double GetRunningTime();
+	bool IsJobStopped();
 	void Stop();
 	void Resume();
 	Job GetJobNum() const;

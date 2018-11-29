@@ -33,6 +33,10 @@ double Job::GetRunningTime(){
 	return (currentTime - startTime);
 }
 
+bool Job::IsJobStopped(){
+	return isStopped;
+}
+
 void Job::Stop(){
 	isStopped = true;
 }
