@@ -22,7 +22,7 @@
 #define MAX_LINE_SIZE 80
 #define MAX_ARG 20
 #define MAX_CMD_LIST_SIZE 50 // for history command
-#define ARG_ERR "Wrong number of arguments"
+#define ARG_ERR "Argument error"
 
 using std::list;
 using std::string;
@@ -30,11 +30,12 @@ using std::string;
 typedef struct smash_t {
 	list<string> cmd_list;
 	list<Job> job_list;
+	list<Job> stopped_jobs;
 } Smash;
 
 int ExeComp(char* lineSize);
-int BgCmd(Smash smash, char* lineSize, void* jobs);
-int ExeCmd(Smash smash, void* jobs, char* lineSize, char* cmdString);
+int BgCmd(Smash smash, char* lineSize);
+int ExeCmd(Smash smash, char* lineSize, char* cmdString);
 void ExeExternal(char *args[MAX_ARG], char* cmdString);
 #endif
 

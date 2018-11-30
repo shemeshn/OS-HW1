@@ -31,6 +31,12 @@ void PrintJobs(Smash smash){
     }
 }
 
+//**************************************************************************************
+// function name: ChangeDirectory
+// Description: changes directory.
+// Parameters: path to new directory
+// Returns: if successful- SUCCESS, else FAILURE
+//**************************************************************************************
 Result ChangeDirectory(char* path){
 	char pwd[MAX_LINE_SIZE], auxWD[MAX_LINE_SIZE];
 	getcwd(pwd, MAX_LINE_SIZE);
@@ -55,8 +61,6 @@ Result ChangeDirectory(char* path){
 		getcwd(pwd, MAX_LINE_SIZE);
 		return SUCCESS;
 	}
-
-	return SUCCESS;
 }
 
 static void KillAndQuit(){
@@ -64,12 +68,12 @@ static void KillAndQuit(){
 	exit(1);
 }
 //**************************************************************************************
-// function name: FindJob
-// Description: Finds a job object with serial number num
-// Parameters: job number, job list
+// function name: FindJobPID
+// Description: Finds a job object with serial number job_num
+// Parameters: job number, smash struct
 // Returns: if successful- a pointer to Job object, else NULL
 //**************************************************************************************
-//not working
+
 int FindJobPID(int job_num, Smash smash){
 	int counter = 1;
     for(list<Job>::iterator it=smash.job_list.begin(); it!=smash.job_list.end(); ++it){
@@ -86,7 +90,7 @@ int FindJobPID(int job_num, Smash smash){
 // Parameters: pointer to jobs, command string
 // Returns: 0 - success,1 - failure
 //**************************************************************************************
-int ExeCmd(Smash smash, void* jobs, char* lineSize, char* cmdString)
+int ExeCmd(Smash smash, char* lineSize, char* cmdString)
 {
     using namespace std;
 	char* cmd; 
@@ -206,6 +210,7 @@ int ExeCmd(Smash smash, void* jobs, char* lineSize, char* cmdString)
         }
         else
         {
+            //converting job_num to integer
 			job_num = atoi(args[2]);
             //removing the '-'
             sig_name.erase(sig_name.begin());
@@ -213,10 +218,12 @@ int ExeCmd(Smash smash, void* jobs, char* lineSize, char* cmdString)
             signum = atoi(sig_name.c_str());
             //conversion failed
             pid = FindJobPID(job_num, smash);
+            //checking if signum and job_num are integers or 0
             if((signum==0)||(job_num==0)) {
                 illegal_cmd = true;
                 arg_err = true;
             }
+            //checking if a job with serial number job_num was found
             else if(pid==-1){
                 cout<<"smash error:> kill "<<job_num<<"- job does not exist"<<endl;
             }
@@ -232,7 +239,63 @@ int ExeCmd(Smash smash, void* jobs, char* lineSize, char* cmdString)
 	/*************************************************/
 	else if (!strcmp(cmd, "bg")) 
 	{
-  		
+		int job_pid;
+		//resuming last stopped job in background
+		if(num_arg==0)
+		{
+			if(smash.stopped_jobs.size()>0){
+				//printing the name of the last job that was stopped
+				cout<<smash.stopped_jobs.back().GetName()<<endl;
+				job_pid = smash.stopped_jobs.back().GetPid();
+				//finding job in job list and changing it's status
+				for (list<Job>::iterator it = smash.job_list.begin(); it != smash.job_list.end() ; ++it){
+					if((*it).GetPid()==job_pid){
+                        (*it).Resume();
+					}
+				}
+                if(signal_handler(SIGCONT, job_pid)==FAILURE)
+                    perror("smash error: >");
+			}
+			else{
+				//printing most recent job's name
+				cout<<smash.job_list.back().GetName()<<endl;
+			}
+		}
+		//resuming a job with a specific serial number in bg
+		else if(num_arg == 1)
+		{
+            int job_num = atoi(args[1]);
+            int job_pid = -1;
+            int counter = 1;
+            //finding job with serial number job_num and resumes it
+            if(job_num>0){
+                for (list<Job>::iterator it = smash.job_list.begin(); it != smash.job_list.end() ; ++it){
+                    if(counter == job_num) {
+                        if ((*it).IsJobStopped()) {
+                            (*it).Resume();
+                            job_pid = (*it).GetPid();
+                        }
+                        break;
+                    }
+                }
+                //if a stopped job was found, sending SIGCONT
+                if(job_pid!=-1){
+                    if(signal_handler(SIGCONT, job_pid)==FAILURE)
+                        perror("smash error: >");
+                }
+            }
+            else
+            {
+                illegal_cmd = true;
+                arg_err = true;
+            }
+		}
+		//wrong number of arguments
+		else
+		{
+            illegal_cmd = true;
+            arg_err = true;
+		}
 	}
 	/*************************************************/
 	else if (!strcmp(cmd, "quit"))
@@ -303,24 +366,23 @@ int ExeCmd(Smash smash, void* jobs, char* lineSize, char* cmdString)
 void ExeExternal(char *args[MAX_ARG], char* cmdString)
 {
 	int pID =0;
-	int tmp;
 	switch(pID = fork())
 	{
 	    case -1:
 			// Add your code here (error)
 
-			perror("Could not create a new process");
+			perror("smash error: > Could not create a new process");
 		case 0 :	// Child Process
             setpgrp();
             execvp(args[0], args);
-			perror("External command execution failed");
+			perror("smash error: > External command execution failed");
 			exit(1);
 			break;
 
 		default:	// Father process: wait for son process to die
             int status;
             if(-1 == waitpid(pID, &status, WUNTRACED)){
-            	perror("waitpid() failed");
+            	perror("smash error: > waitpid() failed");
             }
             break;
 	}
@@ -351,7 +413,7 @@ int ExeComp(char* lineSize)
 // Parameters: command string, pointer to jobs
 // Returns: 0- BG command -1- if not
 //**************************************************************************************
-int BgCmd(Smash smash, char* lineSize, void* jobs)
+int BgCmd(Smash smash, char* lineSize)
 {
 
 	char* Command;
