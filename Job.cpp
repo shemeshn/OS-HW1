@@ -7,6 +7,7 @@
 
 #include "Job.h"
 
+using namespace std;
 Job::Job(string name, int id) :
 	name(name), pid(id), isStopped(false){
 	startTime = time(NULL);

@@ -1,15 +1,9 @@
 //		commands.c
 //********************************************
 #include "commands.h"
-//********************************************
-// function name: ExeCmd
-// Description: interperts and executes built-in commands
-// Parameters: pointer to jobs, command string
-// Returns: 0 - success,1 - failure
-//**************************************************************************************
-using namespace std;
+#include "signals.h"
 
-typedef enum {SUCCESS, FAILURE} Result;
+using namespace std;
 
 char prevWD[MAX_LINE_SIZE];
 
@@ -69,7 +63,29 @@ static void KillAndQuit(){
 	// TODO: complete this function
 	exit(1);
 }
+//**************************************************************************************
+// function name: FindJob
+// Description: Finds a job object with serial number num
+// Parameters: job number, job list
+// Returns: if successful- a pointer to Job object, else NULL
+//**************************************************************************************
+//not working
+int FindJobPID(int job_num, Smash smash){
+	int counter = 1;
+    for(list<Job>::iterator it=smash.job_list.begin(); it!=smash.job_list.end(); ++it){
+        if(counter==job_num){
+            return (*it).GetPid();
+        }
+    }
+    return -1;
+}
 
+//**************************************************************************************
+// function name: ExeCmd
+// Description: interperts and executes built-in commands
+// Parameters: pointer to jobs, command string
+// Returns: 0 - success,1 - failure
+//**************************************************************************************
 int ExeCmd(Smash smash, void* jobs, char* lineSize, char* cmdString)
 {
     using namespace std;
@@ -79,9 +95,10 @@ int ExeCmd(Smash smash, void* jobs, char* lineSize, char* cmdString)
 	char* delimiters = " \t\n";  
 	int i = 0, num_arg = 0;
 	bool illegal_cmd = false; // illegal command
-	bool arg_num_err = false; // argument error
+	bool arg_err = false; // argument error
 	bool sys_err = false; //system error
-    	cmd = strtok(lineSize, delimiters);
+
+	cmd = strtok(lineSize, delimiters);
 	if (cmd == NULL)
 		return 0; 
    	args[0] = cmd;
@@ -128,7 +145,7 @@ int ExeCmd(Smash smash, void* jobs, char* lineSize, char* cmdString)
         else //in case of wrong number of arguments
         {
             illegal_cmd = true;
-            arg_num_err = true;
+            arg_err = true;
         }
 	}
 	
@@ -145,7 +162,7 @@ int ExeCmd(Smash smash, void* jobs, char* lineSize, char* cmdString)
         else //in case of wrong number of arguments
         {
             illegal_cmd = true;
-            arg_num_err = true;
+            arg_err = true;
         }
 	}
 	/*************************************************/
@@ -174,7 +191,41 @@ int ExeCmd(Smash smash, void* jobs, char* lineSize, char* cmdString)
  		}
 	}
 	/*************************************************/
-	else if (!strcmp(cmd, "fg")) 
+    else if (!strcmp(cmd, "kill"))
+    {
+        int signum;
+        int pid;
+        int job_num;
+		string sig_name = args[1];
+
+        //checking if argument number is valid and signum starts with '-'
+        if((num_arg!=2)||(sig_name.compare(0,1,"-")!=0))
+        {
+            illegal_cmd = true;
+            arg_err = true;
+        }
+        else
+        {
+			job_num = atoi(args[2]);
+            //removing the '-'
+            sig_name.erase(sig_name.begin());
+            //converting string to integer
+            signum = atoi(sig_name.c_str());
+            //conversion failed
+            pid = FindJobPID(job_num, smash);
+            if((signum==0)||(job_num==0)) {
+                illegal_cmd = true;
+                arg_err = true;
+            }
+            else if(pid==-1){
+                cout<<"smash error:> kill "<<job_num<<"- job does not exist"<<endl;
+            }
+            else if(signal_handler(signum, pid)==FAILURE)
+                cout<<"smash error:> kill "<<job_num<<"- cannot send signal"<<endl;
+        }
+    }
+    /*************************************************/
+	else if (!strcmp(cmd, "fg"))
 	{
 		
 	} 
@@ -211,7 +262,7 @@ int ExeCmd(Smash smash, void* jobs, char* lineSize, char* cmdString)
         //checking for argument error
         if (num_arg!=2) {
             illegal_cmd = true;
-            arg_num_err = true;
+            arg_err = true;
         }
         //renaming the file
         else {
@@ -232,7 +283,7 @@ int ExeCmd(Smash smash, void* jobs, char* lineSize, char* cmdString)
 	if (illegal_cmd)
 	{
 		//In case of wrong number of arguments
-        if (arg_num_err)
+        if (arg_err)
             printf("smash error: > \"%s\"\n", ARG_ERR);
         //In case of system error
         else if (sys_err)

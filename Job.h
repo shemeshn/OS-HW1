@@ -11,6 +11,7 @@ class Job {
 private:
 	string name;
 	int pid;
+	int job_num;//to be initiated when added to job list
 	double startTime;
 	bool isStopped;
 
@@ -26,7 +27,6 @@ public:
 	bool IsJobStopped();
 	void Stop();
 	void Resume();
-
 };
 #endif /* JOB_H_ */
 

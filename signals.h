@@ -7,8 +7,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include <iostream>
 
+#include "Job.h"
 
+typedef enum {SUCCESS, FAILURE} Result;
+
+Result signal_handler(int signum, int pid);
 
 #endif
 

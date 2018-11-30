@@ -11,7 +11,7 @@
 //for c++
 #include <list>
 #include <string>
-#include<iostream>
+#include <iostream>
 //for checking file status
 #include <sys/stat.h>
 //for exec command
