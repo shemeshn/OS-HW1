@@ -63,9 +63,9 @@ int main(int argc, char *argv[])
 					// perform a complicated Command
 		if(!ExeComp(lineSize)) continue;
 					// background command	
-	 	if(!BgCmd(smash, lineSize, jobs)) continue;
+	 	if(!BgCmd(smash, lineSize)) continue;
 					// built in commands
-		ExeCmd(smash, jobs, lineSize, cmdArr);
+		ExeCmd(smash, lineSize, cmdArr);
 		
 		/* initialize for next line read*/
 		lineSize[0]='\0';

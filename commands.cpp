@@ -68,7 +68,7 @@ static void KillAndQuit(){
 	exit(1);
 }
 //**************************************************************************************
-// function name: FindJob
+// function name: FindJobPID
 // Description: Finds a job object with serial number job_num
 // Parameters: job number, smash struct
 // Returns: if successful- a pointer to Job object, else NULL
@@ -245,29 +245,56 @@ int ExeCmd(Smash smash, char* lineSize, char* cmdString)
 		{
 			if(smash.stopped_jobs.size()>0){
 				//printing the name of the last job that was stopped
-				cout<<smash.stopped_jobs.back.GetName()<<endl;
-				job_pid = smash.stopped_jobs.back.GetPid();
+				cout<<smash.stopped_jobs.back().GetName()<<endl;
+				job_pid = smash.stopped_jobs.back().GetPid();
 				//finding job in job list and changing it's status
 				for (list<Job>::iterator it = smash.job_list.begin(); it != smash.job_list.end() ; ++it){
-					if(*it.GetPid()==job_pid){
-						*it.Resume();
+					if((*it).GetPid()==job_pid){
+                        (*it).Resume();
 					}
 				}
+                if(signal_handler(SIGCONT, job_pid)==FAILURE)
+                    perror("smash error: >");
 			}
 			else{
 				//printing most recent job's name
-				cout<<smash.job_list.back.GetName()<<endl;
+				cout<<smash.job_list.back().GetName()<<endl;
 			}
 		}
 		//resuming a job with a specific serial number in bg
 		else if(num_arg == 1)
 		{
-
+            int job_num = atoi(args[1]);
+            int job_pid = -1;
+            int counter = 1;
+            //finding job with serial number job_num and resumes it
+            if(job_num>0){
+                for (list<Job>::iterator it = smash.job_list.begin(); it != smash.job_list.end() ; ++it){
+                    if(counter == job_num) {
+                        if ((*it).IsJobStopped()) {
+                            (*it).Resume();
+                            job_pid = (*it).GetPid();
+                        }
+                        break;
+                    }
+                }
+                //if a stopped job was found, sending SIGCONT
+                if(job_pid!=-1){
+                    if(signal_handler(SIGCONT, job_pid)==FAILURE)
+                        perror("smash error: >");
+                }
+            }
+            else
+            {
+                illegal_cmd = true;
+                arg_err = true;
+            }
 		}
 		//wrong number of arguments
 		else
 		{
-
+            illegal_cmd = true;
+            arg_err = true;
 		}
 	}
 	/*************************************************/

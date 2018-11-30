@@ -12,11 +12,11 @@
 #include "Job.h"
 
 //useful signal names
-#define SIGINT  2
-#define SIGKILL 9
-#define SIGTERM 15
-#define SIGTSTP 20
-#define SIGCONT 25
+//#define SIGINT  2
+//#define SIGKILL 9
+//#define SIGTERM 15
+//#define SIGTSTP 20
+//#define SIGCONT 25
 
 
 typedef enum {SUCCESS, FAILURE} Result;
