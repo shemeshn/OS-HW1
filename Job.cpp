@@ -7,7 +7,8 @@
 
 #include "Job.h"
 
-Job::Job(string name, int id, int job_num) :
+using namespace std;
+Job::Job(string name, int id) :
 	name(name), pid(id), isStopped(false){
 	startTime = time(NULL);
 }
@@ -43,8 +44,4 @@ void Job::Stop(){
 
 void Job::Resume(){
 	isStopped = false;
-}
-
-Job Job::GetJobNum() const{
-	return job_num;
 }

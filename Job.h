@@ -27,7 +27,6 @@ public:
 	bool IsJobStopped();
 	void Stop();
 	void Resume();
-	Job GetJobNum() const;
 };
 #endif /* JOB_H_ */
 

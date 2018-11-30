@@ -3,6 +3,7 @@
 // contains the function/s that set the signal handlers
 
 #include "signals.h"
+
 /*******************************************/
 /* Name: handler_cntlc
    Synopsis: handle the Control-C */
@@ -11,7 +12,8 @@
 // function name: signal_handler
 // Description: handles signals
 //**************************************************************************************
-Result signal_handler(int signum, int pid, int job_num)
+using namespace std;
+Result signal_handler(int signum, int pid)
 {
     if(kill(pid, signum)==0) {
         //prints success message

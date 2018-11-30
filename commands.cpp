@@ -5,8 +5,6 @@
 
 using namespace std;
 
-typedef enum {SUCCESS, FAILURE} Result;
-
 char prevWD[MAX_LINE_SIZE];
 
 //*****************************************************************************
@@ -72,11 +70,12 @@ static void KillAndQuit(){
 // Returns: if successful- a pointer to Job object, else NULL
 //**************************************************************************************
 //not working
-int FindJobPID(list<Job> job_list, int job_num){
-    for(list<Job>::iterator it=job_list.begin(); it!=job_list.end; ++it){
-        //if((it)->GetJobNum()==job_num){
-        //    return (it)->GetPid();
-        //}
+int FindJobPID(int job_num, Smash smash){
+	int counter = 1;
+    for(list<Job>::iterator it=smash.job_list.begin(); it!=smash.job_list.end(); ++it){
+        if(counter==job_num){
+            return (*it).GetPid();
+        }
     }
     return -1;
 }
@@ -197,7 +196,7 @@ int ExeCmd(Smash smash, void* jobs, char* lineSize, char* cmdString)
         int signum;
         int pid;
         int job_num;
-        string sig_name = args[1];
+		string sig_name = args[1];
 
         //checking if argument number is valid and signum starts with '-'
         if((num_arg!=2)||(sig_name.compare(0,1,"-")!=0))
@@ -207,14 +206,19 @@ int ExeCmd(Smash smash, void* jobs, char* lineSize, char* cmdString)
         }
         else
         {
+			job_num = atoi(args[2]);
             //removing the '-'
             sig_name.erase(sig_name.begin());
             //converting string to integer
             signum = atoi(sig_name.c_str());
             //conversion failed
-            if(signum==0) {
+            pid = FindJobPID(job_num, smash);
+            if((signum==0)||(job_num==0)) {
                 illegal_cmd = true;
                 arg_err = true;
+            }
+            else if(pid==-1){
+                cout<<"smash error:> kill "<<job_num<<"- job does not exist"<<endl;
             }
             else if(signal_handler(signum, pid)==FAILURE)
                 cout<<"smash error:> kill "<<job_num<<"- cannot send signal"<<endl;
