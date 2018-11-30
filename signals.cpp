@@ -8,6 +8,9 @@
 /* Name: handler_cntlc
    Synopsis: handle the Control-C */
 
+/* Name: handler_cntlz
+   Synopsis: handle the Control-Z */
+
 //**************************************************************************************
 // function name: signal_handler
 // Description: handles signals

@@ -11,7 +11,6 @@ class Job {
 private:
 	string name;
 	int pid;
-	int job_num;//to be initiated when added to job list
 	double startTime;
 	bool isStopped;
 
