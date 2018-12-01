@@ -32,12 +32,6 @@ int main(int argc, char *argv[])
 	//signal declarations
 	//NOTE: the signal handlers and the function/s that sets the handler should be found in siganls.c
 	 /* add your code here */
-	
-	/************************************/
-	//NOTE: the signal handlers and the function/s that sets the handler should be found in siganls.c
-	//set your signal handlers here
-	/* add your code here */
-
 	/************************************/
 
 	/************************************/
@@ -58,9 +52,11 @@ int main(int argc, char *argv[])
 		cmdArr[strlen(lineSize)-1]='\0';
 		cmdString = cmdArr;
         //saving new commands to command list for history command
-        if (smash.cmd_list.size()>=MAX_CMD_LIST_SIZE)
-        	smash.cmd_list.pop_front();
-        smash.cmd_list.push_back(cmdString);
+        if(!cmdString.empty()){
+            if (smash.cmd_list.size()>=MAX_CMD_LIST_SIZE)
+                smash.cmd_list.pop_front();
+            smash.cmd_list.push_back(cmdString);
+        }
 					// perform a complicated Command
 		if(!ExeComp(lineSize)) continue;
 					// background command	
