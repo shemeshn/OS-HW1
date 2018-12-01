@@ -6,7 +6,6 @@
 using namespace std;
 
 char prevWD[MAX_LINE_SIZE];
-int fgPID;// for ctrlz handling
 
 //*****************************************************************************
 //*************** Smash functions
@@ -407,7 +406,7 @@ int ExeCmd(Smash& smash, char* lineSize, char* cmdString)
         /*************************************************/
 	else // external command
 	{
- 		ExeExternal(args, cmdString);
+ 		ExeExternal(args, cmdString, smash);
 	 	return 0;
 	}
 	if (illegal_cmd)
@@ -430,10 +429,9 @@ int ExeCmd(Smash& smash, char* lineSize, char* cmdString)
 // Parameters: external command arguments, external command string
 // Returns: void
 //**************************************************************************************
-void ExeExternal(char *args[MAX_ARG], char* cmdString)
+void ExeExternal(char *args[MAX_ARG], char* cmdString, Smash& smash)
 {
 	int pID =0;
-	fgPID = 0;
 	switch(pID = fork())
 	{
 	    case -1:
@@ -449,10 +447,12 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
 
 		default:	// Father process: wait for son process to die
             int status;
-            fgPID = pID;
+            smash.fg_job_pid = pID;
+            smash.fg_job_name = args[0];
             if(-1 == waitpid(pID, &status, WUNTRACED)){
             	perror("smash error: > waitpid() failed");
             }
+            smash.fg_job_pid = 0;
             break;
 	}
 }

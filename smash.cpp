@@ -28,12 +28,13 @@ int main(int argc, char *argv[])
 {
     char cmdArr[MAX_LINE_SIZE]; 	   
     string cmdString;
-	
+	smash.fg_job_pid = 0;
 	//signal declarations
 	//NOTE: the signal handlers and the function/s that sets the handler should be found in siganls.c
 	 /* add your code here */
 	/************************************/
-
+	signal(SIGTSTP, ctrlZ_handler);
+	signal(SIGINT, ctrlC_handler);
 	/************************************/
 	// Init globals 
     
