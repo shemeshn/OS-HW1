@@ -12,12 +12,13 @@
 #include <list>
 #include <string>
 #include <iostream>
-//for checking file status
+
 #include <sys/stat.h>
 //for exec command
 #include <unistd.h>
 
 #include "Job.h"
+#include "signals.h"
 
 #define MAX_LINE_SIZE 80
 #define MAX_ARG 20
@@ -26,12 +27,6 @@
 
 using std::list;
 using std::string;
-
-typedef struct smash_t {
-	list<string> cmd_list;
-	list<Job> job_list;
-	list<Job> stopped_jobs;
-} Smash;
 
 int ExeComp(char* lineSize);
 int BgCmd(Smash& smash, char* lineSize);

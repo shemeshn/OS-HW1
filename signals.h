@@ -8,20 +8,21 @@
 #include <string.h>
 #include <signal.h>
 #include <iostream>
+#include <list>
+#include <string>
 
 #include "Job.h"
+using namespace std;
 
-//useful signal names
-//#define SIGINT  2
-//#define SIGKILL 9
-//#define SIGTERM 15
-//#define SIGTSTP 20
-//#define SIGCONT 25
-
+typedef struct smash_t {
+    list<string> cmd_list;
+    list<Job> job_list;
+    list<Job> stopped_jobs;
+} Smash;
 
 typedef enum {SUCCESS, FAILURE} Result;
 
-Result signal_handler(int signum, int pid);
+Result signal_handler(int signum, int pid, Job& job);
 
 #endif
 
