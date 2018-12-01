@@ -15,6 +15,8 @@
 using namespace std;
 
 typedef struct smash_t {
+    int fg_job_pid;
+    string fg_job_name;
     list<string> cmd_list;
     list<Job> job_list;
     list<Job> stopped_jobs;
@@ -22,6 +24,8 @@ typedef struct smash_t {
 
 typedef enum {SUCCESS, FAILURE} Result;
 
+void ctrlC_handler(int signal);
+void ctrlZ_handler(int signal);
 Result signal_handler(int signum, int pid, Job& job);
 
 #endif

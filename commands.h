@@ -31,7 +31,7 @@ using std::string;
 int ExeComp(char* lineSize);
 int BgCmd(Smash& smash, char* lineSize);
 int ExeCmd(Smash& smash, char* lineSize, char* cmdString);
-void ExeExternal(char *args[MAX_ARG], char* cmdString);
+void ExeExternal(char *args[MAX_ARG], char* cmdString, Smash& smash);
 void UpdateJobsList(Smash& smash);
 #endif
 

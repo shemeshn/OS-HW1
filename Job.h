@@ -29,5 +29,6 @@ public:
 
 	bool operator==(const Job& otherJob) const;
 };
+typedef class Job* pJob;
 #endif /* JOB_H_ */
 
