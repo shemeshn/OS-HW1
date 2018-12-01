@@ -11,19 +11,63 @@ char prevWD[MAX_LINE_SIZE];
 //*************** Smash functions
 //*****************************************************************************
 
-void InsertJob(Smash smash, string name, int pid){
+//**************************************************************************************
+// function name: FindJobPID
+// Description: Finds a job object with serial number job_num
+// Parameters: job number, smash struct
+// Returns: if successful- a pointer to Job object, else NULL
+//**************************************************************************************
+
+int FindJobPID(int job_num, Smash smash){
+	int counter = 1;
+    for(list<Job>::iterator it=smash.job_list.begin(); it!=smash.job_list.end(); ++it){
+        if(counter==job_num){
+            return (*it).GetPid();
+        }
+    }
+    return -1;
+}
+
+// Finds terminated jobs on jobs_list and removes them
+void UpdateJobsList(Smash& smash){
+
+	int status = 0;
+	int deadChildPid = waitpid(-1, &status, WNOHANG);
+
+	while(deadChildPid > 0){	// for all child processes that finished running
+		// Find job in jobs_list
+		Job deadChildJob("", 0);
+		for(list<Job>::iterator it=smash.job_list.begin(); it!=smash.job_list.end(); ++it){
+			if(it->GetPid() == deadChildPid){
+				deadChildJob = (*it);
+			}
+		}
+
+		if(deadChildJob.IsStopped()){	// In case we caught a suspended process
+			deadChildPid = waitpid(-1, &status, WNOHANG);
+			continue;
+		} else {	// Finally, caught a terminated process
+			smash.job_list.remove(deadChildJob);
+		}
+		deadChildPid = waitpid(-1, &status, WNOHANG);
+	}
+
+}
+
+void InsertJob(Smash& smash, string name, int pid){
 	Job newJob(name, pid);
 	smash.job_list.push_back(newJob);
 	return;
 }
 
-void PrintJobs(Smash smash){
+// Prints the jobs that currently runs on bg
+void PrintJobs(Smash& smash){
 
 	int counter = 1;
     for (list<Job>::iterator it = smash.job_list.begin(); it != smash.job_list.end() ; ++it) {
         cout << "[" << counter << "] " << it->GetName() << " ";
         cout << it->GetPid() << " " << it->GetRunningTime() << " secs";
-        if(it->IsJobStopped()){
+        if(it->IsStopped()){
         	cout << " (Stopped)";
         }
         cout << endl;
@@ -67,22 +111,6 @@ static void KillAndQuit(){
 	// TODO: complete this function
 	exit(1);
 }
-//**************************************************************************************
-// function name: FindJobPID
-// Description: Finds a job object with serial number job_num
-// Parameters: job number, smash struct
-// Returns: if successful- a pointer to Job object, else NULL
-//**************************************************************************************
-
-int FindJobPID(int job_num, Smash smash){
-	int counter = 1;
-    for(list<Job>::iterator it=smash.job_list.begin(); it!=smash.job_list.end(); ++it){
-        if(counter==job_num){
-            return (*it).GetPid();
-        }
-    }
-    return -1;
-}
 
 //**************************************************************************************
 // function name: ExeCmd
@@ -90,13 +118,13 @@ int FindJobPID(int job_num, Smash smash){
 // Parameters: pointer to jobs, command string
 // Returns: 0 - success,1 - failure
 //**************************************************************************************
-int ExeCmd(Smash smash, char* lineSize, char* cmdString)
+int ExeCmd(Smash& smash, char* lineSize, char* cmdString)
 {
     using namespace std;
 	char* cmd; 
 	char* args[MAX_ARG];
 	char pwd[MAX_LINE_SIZE]; // Used in pwd command
-	char* delimiters = " \t\n";  
+	const char* delimiters = " \t\n";
 	int i = 0, num_arg = 0;
 	bool illegal_cmd = false; // illegal command
 	bool arg_err = false; // argument error
@@ -271,7 +299,7 @@ int ExeCmd(Smash smash, char* lineSize, char* cmdString)
             if(job_num>0){
                 for (list<Job>::iterator it = smash.job_list.begin(); it != smash.job_list.end() ; ++it){
                     if(counter == job_num) {
-                        if ((*it).IsJobStopped()) {
+                        if ((*it).IsStopped()) {
                             (*it).Resume();
                             job_pid = (*it).GetPid();
                         }
@@ -400,7 +428,7 @@ int ExeComp(char* lineSize)
     if ((strstr(lineSize, "|")) || (strstr(lineSize, "<")) || (strstr(lineSize, ">")) || (strstr(lineSize, "*")) || (strstr(lineSize, "?")) || (strstr(lineSize, ">>")) || (strstr(lineSize, "|&")))
     {
 		// Add your code here (execute a complicated command)
-					
+		return 0;
 		/* 
 		your code
 		*/
@@ -413,23 +441,46 @@ int ExeComp(char* lineSize)
 // Parameters: command string, pointer to jobs
 // Returns: 0- BG command -1- if not
 //**************************************************************************************
-int BgCmd(Smash smash, char* lineSize)
+int BgCmd(Smash& smash, char* lineSize)
 {
-
 	char* Command;
-	char* delimiters = " \t\n";
+	const char* delimiters = " \t\n";
 	char *args[MAX_ARG];
 	if (lineSize[strlen(lineSize)-2] == '&')
 	{
 		lineSize[strlen(lineSize)-2] = '\0';
 		// Add your code here (execute a in the background)
 
-		/*
-		  your code
-		 */
+		// Parse command
+		Command = strtok(lineSize, delimiters);
+		if (Command == NULL)
+			return 0;
+	   	args[0] = Command;
+		for (int i=1; i<MAX_ARG; i++)
+		{
+			args[i] = strtok(NULL, delimiters);
+		}
+
+		// Creating process to run command
+		int pid = 0;
+		switch(pid = fork()){
+			case -1:	// fork failed
+				perror("smash error: > Could not create a new process");
+
+			case 0 :	// Child Process runs the command
+				setpgrp();
+				execvp(args[0], args);
+				perror("child smash error: > External command execution failed");
+				exit(1);
+				break;
+
+			default:	// Father process inserts job to smash and continues as usual
+				InsertJob(smash, lineSize, pid);
+				return 0;
+				break;
+
+		}
 
 	}
 	return -1;
 }
-
-//test

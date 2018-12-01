@@ -53,6 +53,7 @@ int main(int argc, char *argv[])
     	{
 	 	printf("smash > ");
 		fgets(lineSize, MAX_LINE_SIZE, stdin);
+		UpdateJobsList(smash);
 		strcpy(cmdArr, lineSize);    	
 		cmdArr[strlen(lineSize)-1]='\0';
 		cmdString = cmdArr;
@@ -66,7 +67,7 @@ int main(int argc, char *argv[])
 	 	if(!BgCmd(smash, lineSize)) continue;
 					// built in commands
 		ExeCmd(smash, lineSize, cmdArr);
-		
+
 		/* initialize for next line read*/
 		lineSize[0]='\0';
 		cmdArr[0]='\0';
