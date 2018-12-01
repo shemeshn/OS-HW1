@@ -34,8 +34,9 @@ typedef struct smash_t {
 } Smash;
 
 int ExeComp(char* lineSize);
-int BgCmd(Smash smash, char* lineSize);
-int ExeCmd(Smash smash, char* lineSize, char* cmdString);
+int BgCmd(Smash& smash, char* lineSize);
+int ExeCmd(Smash& smash, char* lineSize, char* cmdString);
 void ExeExternal(char *args[MAX_ARG], char* cmdString);
+void UpdateJobsList(Smash& smash);
 #endif
 

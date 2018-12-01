@@ -23,9 +23,11 @@ public:
 	void SetName(string newName);
 	int GetPid();
 	double GetRunningTime();
-	bool IsJobStopped();
+	bool IsStopped();
 	void Stop();
 	void Resume();
+
+	bool operator==(const Job& otherJob) const;
 };
 #endif /* JOB_H_ */
 

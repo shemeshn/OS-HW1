@@ -62,7 +62,7 @@ double Job::GetRunningTime(){
 // function name: IsJobStopped
 // Description: returns true if job is stopped, false otherwise
 //**************************************************************************************
-bool Job::IsJobStopped(){
+bool Job::IsStopped(){
 	return isStopped;
 }
 
@@ -80,4 +80,8 @@ void Job::Stop(){
 //**************************************************************************************
 void Job::Resume(){
 	isStopped = false;
+}
+
+bool Job::operator==(const Job& otherJob) const {
+	return (pid == otherJob.pid);
 }
