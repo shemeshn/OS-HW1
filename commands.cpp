@@ -109,6 +109,32 @@ Result ChangeDirectory(char* path){
 	}
 }
 
+void BringToFg(Smash& smash, int jobListIndex){
+	jobListIndex--;		// Counting from 0, not 1
+	if(jobListIndex < 0 || jobListIndex >= smash.job_list.size()){
+		perror("Invalid job index");
+		return;
+	}
+
+	Job jobToFg("", 0);
+	// Find relevant Job in list
+	for(list<Job>::iterator it = smash.job_list.begin(); it != smash.job_list.end(); ++it){
+		if(0 == jobListIndex){		// Found it!
+			jobToFg = (*it);
+			break;
+		}
+		jobListIndex--;
+	}
+
+	cout << jobToFg.GetName() << endl;
+	int status = 0;
+	if(-1 == waitpid(jobToFg.GetPid(), &status, WUNTRACED)){
+		perror("waitpid failed");
+	}
+	smash.job_list.remove(jobToFg);
+	return;
+}
+
 static void KillAndQuit(){
 	// TODO: complete this function
 	exit(1);
@@ -263,7 +289,22 @@ int ExeCmd(Smash& smash, char* lineSize, char* cmdString)
     /*************************************************/
 	else if (!strcmp(cmd, "fg"))
 	{
-		
+		switch(num_arg){
+			case 0:
+				BringToFg(smash, smash.job_list.size());
+				break;
+
+			case 1:
+				if(0 == atoi(args[1])){		// atoi failed, not a number
+					illegal_cmd = true;
+					break;
+				}
+				BringToFg(smash, atoi(args[1]));
+				break;
+
+			default:
+				illegal_cmd = true;
+		}
 	} 
 	/*************************************************/
 	else if (!strcmp(cmd, "bg")) 
