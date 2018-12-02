@@ -11,24 +11,6 @@ char prevWD[MAX_LINE_SIZE];
 //*************** Smash functions
 //*****************************************************************************
 
-//**************************************************************************************
-// function name: FindJobPID
-// Description: Finds a job object with serial number job_num
-// Parameters: job number, smash struct
-// Returns: if successful- a pointer to Job object, else NULL
-//**************************************************************************************
-
-Result FindJob(int job_num, Smash smash, Job& job){
-	int counter = 1;
-    for(list<Job>::iterator it=smash.job_list.begin(); it!=smash.job_list.end(); ++it){
-        if(counter==job_num){
-            job = *it;
-            return SUCCESS;
-        }
-    }
-    return FAILURE;
-}
-
 // Finds terminated jobs on jobs_list and removes them
 void UpdateJobsList(Smash& smash){
 
@@ -281,11 +263,20 @@ int ExeCmd(Smash& smash, char* lineSize, char* cmdString)
                 arg_err = true;
             }
             //checking if a job with serial number job_num was found
-            else if(FindJob(job_num, smash, job)== FAILURE){
+			int counter = 1;
+            bool found = false;
+			for(list<Job>::iterator it=smash.job_list.begin(); it!=smash.job_list.end(); ++it){
+				if(counter==job_num){
+					if (signal_handler(signum, it->GetPid(), *it)==FAILURE){
+						cout<<"smash error:> kill "<<job_num<<"- cannot send signal"<<endl;
+					}
+					found = true;
+					break;
+				}
+			}
+            if( found == false){
                 cout<<"smash error:> kill "<<job_num<<"- job does not exist"<<endl;
             }
-            else if(signal_handler(signum, job.GetPid(), job)==FAILURE)
-                cout<<"smash error:> kill "<<job_num<<"- cannot send signal"<<endl;
         }
     }
     /*************************************************/
