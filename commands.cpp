@@ -52,7 +52,6 @@ void UpdateJobsList(Smash& smash){
 		}
 		deadChildPid = waitpid(-1, &status, WNOHANG);
 	}
-
 }
 
 void InsertJob(Smash& smash, string name, int pid){
@@ -67,9 +66,9 @@ void PrintJobs(Smash& smash){
 	int counter = 1;
     for (list<Job>::iterator it = smash.job_list.begin(); it != smash.job_list.end() ; ++it) {
         cout << "[" << counter << "] " << it->GetName() << " ";
-        cout << it->GetPid() << " " << it->GetRunningTime() << " secs";
-        if(it->IsStopped()){
-        	cout << " (Stopped)";
+        cout << it->GetPid() << " " << it->GetRunningTime() << " secs ";
+        if((*it).IsStopped()){
+        	cout << "(Stopped)";
         }
         cout << endl;
         counter++;
@@ -119,18 +118,22 @@ void BringToFg(Smash& smash, int jobListIndex){
 	// Find relevant Job in list
 	for(list<Job>::iterator it = smash.job_list.begin(); it != smash.job_list.end(); ++it){
 		if(0 == jobListIndex){		// Found it!
+            if(it->IsStopped()){//sending SIGCONT if necessary
+                if (signal_handler(SIGCONT, it->GetPid(), *it)==FAILURE)
+                    perror("smash error> :signal failed");
+            }
 			jobToFg = (*it);
 			break;
 		}
 		jobListIndex--;
 	}
-
 	cout << jobToFg.GetName() << endl;
 	int status = 0;
 	if(-1 == waitpid(jobToFg.GetPid(), &status, WUNTRACED)){
 		perror("waitpid failed");
 	}
 	smash.job_list.remove(jobToFg);
+	smash.fg_job_pid = jobToFg.GetPid();
 	return;
 }
 
@@ -320,11 +323,10 @@ int ExeCmd(Smash& smash, char* lineSize, char* cmdString)
 				//finding job in job list and changing it's status
                 for(list<Job>::iterator it=smash.job_list.begin(); it!=smash.job_list.end(); ++it){
                     if((*it).GetPid()){
-                        job = *it;
+                        if(signal_handler(SIGCONT, job_pid, (*it))==FAILURE)
+                            perror("smash error: >");
                     }
                 }
-                if(signal_handler(SIGCONT, job_pid, job)==FAILURE)
-                    perror("smash error: >");
 			}
 			else{
 				//printing most recent job's name
@@ -339,15 +341,14 @@ int ExeCmd(Smash& smash, char* lineSize, char* cmdString)
             job_pid = -1;
             //finding job with serial number job_num and resumes it
             if(job_num>0){
-                FindJob(job_num, smash, job);
-                //checking if the job is stopped
-                if(job.IsStopped()){
-                	job_pid = job.GetPid();
-                }
-                //if a stopped job was found, sending SIGCONT
-                if(job_pid!=-1){
-                    if(signal_handler(SIGCONT, job_pid, job)==FAILURE)
-                        perror("smash error: >");
+                int counter = 1;
+                for(list<Job>::iterator it=smash.job_list.begin(); it!=smash.job_list.end(); ++it){
+                    if(counter==job_num){
+                        if(it->IsStopped()){
+                            if(signal_handler(SIGCONT, it->GetPid(), *it)==FAILURE)
+                                perror("smash error: >");
+                        }
+                    }
                 }
             }
             else
@@ -512,14 +513,13 @@ int BgCmd(Smash& smash, char* lineSize)
 				setpgrp();
 				execvp(args[0], args);
 				perror("child smash error: > External command execution failed");
+                printf("smash > ");// prints smash before exit, otherwise prints an empty line
 				exit(1);
 				break;
 
 			default:	// Father process inserts job to smash and continues as usual
 				InsertJob(smash, lineSize, pid);
 				return 0;
-				break;
-
 		}
 
 	}

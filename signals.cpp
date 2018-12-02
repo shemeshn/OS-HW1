@@ -27,16 +27,16 @@ void ctrlZ_handler(int signal)
     if(smash.fg_job_pid!=0){
         int pid = smash.fg_job_pid;
         Job fgJob(smash.fg_job_name, pid);
-        //inserting the process to job list
-        smash.job_list.push_back(fgJob);
         //sending the signal to the right process
         if(signal_handler(signal, pid, fgJob)==SUCCESS)
             smash.fg_job_pid = 0;
+        //inserting the process to job list
+        smash.job_list.push_back(fgJob);
     }
 }
 //**************************************************************************************
 // function name: signal_handler
-// Description: handles signals
+// Description: handles signals sent from kill command
 //**************************************************************************************
 using namespace std;
 Result signal_handler(int signum, int pid, Job& job)
