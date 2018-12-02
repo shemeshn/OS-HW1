@@ -5,8 +5,10 @@
 #include "signals.h"
 extern Smash smash;
 /*******************************************/
-/* Name: handler_cntlc
-   Synopsis: handle the Control-C */
+//**************************************************************************************
+// Name: handler_cntlc
+// Synopsis: handle the Control-C
+//**************************************************************************************
 void ctrlC_handler(int signal)
 {
     //checking if there is a job running in fg
@@ -19,8 +21,10 @@ void ctrlC_handler(int signal)
     }
 }
 
-/* Name: handler_cntlz
-   Synopsis: handle the Control-Z */
+//**************************************************************************************
+// Name: handler_cntlz
+//Synopsis: handle the Control-Z
+//**************************************************************************************
 void ctrlZ_handler(int signal)
 {
     //checking if there is a job running in fg

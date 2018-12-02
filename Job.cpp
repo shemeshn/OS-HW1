@@ -82,6 +82,10 @@ void Job::Resume(){
 	isStopped = false;
 }
 
+//**************************************************************************************
+// function name: operator==
+// Description: overloading of operator == for job class
+//**************************************************************************************
 bool Job::operator==(const Job& otherJob) const {
 	return (pid == otherJob.pid);
 }
