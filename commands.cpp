@@ -156,8 +156,36 @@ void BringToFg(Smash& smash, int jobListIndex){
 // Parameters: none
 // Returns: none
 //**************************************************************************************
-static void KillAndQuit(){
-	// TODO: complete this function
+static void KillAndQuit(Smash& smash){
+	int index = 1;
+	int status;
+
+	for(list<Job>::iterator it = smash.job_list.begin(); it != smash.job_list.end(); ++it){
+
+		bool terminated = false;
+		cout << "[" << index << "]" << it->GetName() << " - Sending SIGTERM... ";
+		time_t startTime = time(NULL);
+
+		do{
+			kill(it->GetPid(), SIGTERM);
+			pid_t result = waitpid(it->GetPid(), &status, WNOHANG);		// check child status
+			if(result != 0 && result != -1){	// if child terminated
+				cout << "Done." << endl;
+				terminated = true;
+			}
+		} while(!terminated && time(NULL) - startTime < 5);
+
+		if(!terminated){		// process resisted SIGTERM, sending SIGKILL
+			cout << "(5 sec passed) Sending SIGKILL... ";
+			kill(it->GetPid(), SIGKILL);
+			cout << "Done." << endl;
+		}
+		index++;
+	}
+
+	// Clean up
+	smash.job_list.clear();
+	smash.cmd_list.clear();
 	exit(1);
 }
 
@@ -406,7 +434,7 @@ int ExeCmd(Smash& smash, char* lineSize, char* cmdString)
 
    			case 1:
    				if(!strcmp(args[1], "kill")){
-   					KillAndQuit();
+   					KillAndQuit(smash);
    				} else {
    					illegal_cmd = true;
    				}
