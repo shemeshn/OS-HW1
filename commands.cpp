@@ -133,13 +133,20 @@ void BringToFg(Smash& smash, int jobListIndex){
 		}
 		jobListIndex--;
 	}
-	cout << jobToFg.GetName() << endl;
+
 	int status = 0;
+
+	//setting signal handlers to child process
+	signal(SIGTSTP, ctrlZ_handler);
+	signal(SIGINT, ctrlC_handler);
+
+	cout << jobToFg.GetName() << endl;
+
+	smash.fg_job_pid = jobToFg.GetPid();
+	smash.job_list.remove(jobToFg);
 	if(-1 == waitpid(jobToFg.GetPid(), &status, WUNTRACED)){
 		perror("smash error: >waitpid failed");
 	}
-	smash.job_list.remove(jobToFg);
-	smash.fg_job_pid = jobToFg.GetPid();
 	return;
 }
 
@@ -303,6 +310,7 @@ int ExeCmd(Smash& smash, char* lineSize, char* cmdString)
 					found = true;
 					break;
 				}
+				counter++;
 			}
             if( found == false){
                 cout<<"smash error:> kill "<<job_num<<"- job does not exist"<<endl;
@@ -332,7 +340,6 @@ int ExeCmd(Smash& smash, char* lineSize, char* cmdString)
 	/*************************************************/
 	else if (!strcmp(cmd, "bg")) 
 	{
-        Job job("",0);
         int job_pid;
 		//resuming last stopped job in background
 		if(num_arg==0)
@@ -347,6 +354,7 @@ int ExeCmd(Smash& smash, char* lineSize, char* cmdString)
                         if(signal_handler(SIGCONT, job_pid, (*it))==FAILURE)
                             perror("smash error: >");
                     }
+                    cout<<(*it).GetName()<<endl;
                 }
 			}
 			else{
@@ -366,10 +374,13 @@ int ExeCmd(Smash& smash, char* lineSize, char* cmdString)
                 for(list<Job>::iterator it=smash.job_list.begin(); it!=smash.job_list.end(); ++it){
                     if(counter==job_num){
                         if(it->IsStopped()){
-                            if(signal_handler(SIGCONT, it->GetPid(), *it)==FAILURE)
-                                perror("smash error: >");
+                            if(signal_handler(SIGCONT, it->GetPid(), *it)==SUCCESS)
+								cout<<(*it).GetName()<<endl;
+                            else
+								perror("smash error: >");
                         }
                     }
+                    counter++;
                 }
             }
             else

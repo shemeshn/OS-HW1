@@ -16,6 +16,7 @@ void ctrlC_handler(int signal)
         int pid = smash.fg_job_pid;
         Job fgJob(smash.fg_job_name, pid);
         //sending the signal to the right process
+        cout<<endl;
         if(signal_handler(signal, pid, fgJob)==SUCCESS)
             smash.fg_job_pid = 0;
     }
@@ -32,6 +33,7 @@ void ctrlZ_handler(int signal)
         int pid = smash.fg_job_pid;
         Job fgJob(smash.fg_job_name, pid);
         //sending the signal to the right process
+        cout<<endl;
         if(signal_handler(signal, pid, fgJob)==SUCCESS)
             smash.fg_job_pid = 0;
         //inserting the process to job list
