@@ -12,24 +12,11 @@ char prevWD[MAX_LINE_SIZE];
 //*****************************************************************************
 
 //**************************************************************************************
-// function name: FindJobPID
-// Description: Finds a job object with serial number job_num
-// Parameters: job number, smash struct
-// Returns: if successful- a pointer to Job object, else NULL
+// function name: UpdateJobsList
+// Description: when a child process dies, removes it from job list.
+// Parameters: Smash struct
+// Returns: None
 //**************************************************************************************
-
-Result FindJob(int job_num, Smash smash, Job& job){
-	int counter = 1;
-    for(list<Job>::iterator it=smash.job_list.begin(); it!=smash.job_list.end(); ++it){
-        if(counter==job_num){
-            job = *it;
-            return SUCCESS;
-        }
-    }
-    return FAILURE;
-}
-
-// Finds terminated jobs on jobs_list and removes them
 void UpdateJobsList(Smash& smash){
 
 	int status = 0;
@@ -54,13 +41,25 @@ void UpdateJobsList(Smash& smash){
 	}
 }
 
+//**************************************************************************************
+// function name: InsertJob
+// Description: creates a new job object and inserts it to job list.
+// Parameters: Smash struct, job's name, job's pid
+// Returns: None
+//**************************************************************************************
 void InsertJob(Smash& smash, string name, int pid){
 	Job newJob(name, pid);
 	smash.job_list.push_back(newJob);
 	return;
 }
 
-// Prints the jobs that currently runs on bg
+//**************************************************************************************
+// function name: PrintJobs
+// Description: prints a list of processes that run on bg.
+// Parameters: Smash struct
+// Returns: None
+//**************************************************************************************
+
 void PrintJobs(Smash& smash){
 
 	int counter = 1;
@@ -107,10 +106,16 @@ Result ChangeDirectory(char* path){
 	}
 }
 
+//**************************************************************************************
+// function name: BringToFg
+// Description: beings a bg process to fg
+// Parameters: Smash struct, index of job in job list
+// Returns: None
+//**************************************************************************************
 void BringToFg(Smash& smash, int jobListIndex){
 	jobListIndex--;		// Counting from 0, not 1
 	if(jobListIndex < 0 || jobListIndex >= smash.job_list.size()){
-		perror("Invalid job index");
+		perror("smash error: >Invalid job index");
 		return;
 	}
 
@@ -118,9 +123,10 @@ void BringToFg(Smash& smash, int jobListIndex){
 	// Find relevant Job in list
 	for(list<Job>::iterator it = smash.job_list.begin(); it != smash.job_list.end(); ++it){
 		if(0 == jobListIndex){		// Found it!
-            if(it->IsStopped()){//sending SIGCONT if necessary
+            //sending SIGCONT if necessary
+            if(it->IsStopped()){
                 if (signal_handler(SIGCONT, it->GetPid(), *it)==FAILURE)
-                    perror("smash error> :signal failed");
+                    perror("smash error: >signal failed");
             }
 			jobToFg = (*it);
 			break;
@@ -130,13 +136,19 @@ void BringToFg(Smash& smash, int jobListIndex){
 	cout << jobToFg.GetName() << endl;
 	int status = 0;
 	if(-1 == waitpid(jobToFg.GetPid(), &status, WUNTRACED)){
-		perror("waitpid failed");
+		perror("smash error: >waitpid failed");
 	}
 	smash.job_list.remove(jobToFg);
 	smash.fg_job_pid = jobToFg.GetPid();
 	return;
 }
 
+//**************************************************************************************
+// function name: KillAndQuit
+// Description: kills all child processes before killing the smash process and quits
+// Parameters: none
+// Returns: none
+//**************************************************************************************
 static void KillAndQuit(){
 	// TODO: complete this function
 	exit(1);
@@ -281,11 +293,20 @@ int ExeCmd(Smash& smash, char* lineSize, char* cmdString)
                 arg_err = true;
             }
             //checking if a job with serial number job_num was found
-            else if(FindJob(job_num, smash, job)== FAILURE){
+			int counter = 1;
+            bool found = false;
+			for(list<Job>::iterator it=smash.job_list.begin(); it!=smash.job_list.end(); ++it){
+				if(counter==job_num){
+					if (signal_handler(signum, it->GetPid(), *it)==FAILURE){
+						cout<<"smash error:> kill "<<job_num<<"- cannot send signal"<<endl;
+					}
+					found = true;
+					break;
+				}
+			}
+            if( found == false){
                 cout<<"smash error:> kill "<<job_num<<"- job does not exist"<<endl;
             }
-            else if(signal_handler(signum, job.GetPid(), job)==FAILURE)
-                cout<<"smash error:> kill "<<job_num<<"- cannot send signal"<<endl;
         }
     }
     /*************************************************/
